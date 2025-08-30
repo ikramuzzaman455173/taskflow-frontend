@@ -198,7 +198,7 @@ export default function Login({ onToggleMode, isLogin }: LoginProps) {
     try {
       if (isLogin) {
         const success = await login(formData.email, formData.password);
-        console.log("🚀 ~ handleSubmit ~ success:", success)
+        
         if (success) {
           toast.success('🎉 Welcome back! Login successful!', {
             position: "top-right",
