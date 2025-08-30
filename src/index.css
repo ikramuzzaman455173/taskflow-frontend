@@ -1,0 +1,250 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Modern Task Manager Design System */
+@layer base {
+  :root {
+    /* Base colors */
+    --background: 0 0% 100%;
+    --foreground: 220 13% 18%;
+
+    /* Card colors */
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 18%;
+
+    /* Popover colors */
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 18%;
+
+    /* Primary brand colors - Purple gradient theme */
+    --primary: 262 90% 50%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 262 90% 60%;
+
+    /* Secondary colors - Teal accent */
+    --secondary: 180 78% 50%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-light: 180 78% 60%;
+
+    /* Status colors */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Priority colors */
+    --priority-low: 142 76% 36%;
+    --priority-medium: 38 92% 50%;
+    --priority-high: 0 84% 60%;
+
+    /* UI elements */
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 220 14% 96%;
+    --accent-foreground: 220 9% 15%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 262 90% 50%;
+
+    /* Enhanced Sidebar colors for better visibility */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 220 13% 18%;
+    --sidebar-primary: 262 90% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 88%; /* More visible hover background */
+    --sidebar-accent-foreground: 220 9% 15%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 262 90% 50%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Base colors */
+    --background: 220 27% 8%;
+    --foreground: 220 9% 95%;
+
+    /* Card colors */
+    --card: 220 27% 12%;
+    --card-foreground: 220 9% 95%;
+
+    /* Popover colors */
+    --popover: 220 27% 12%;
+    --popover-foreground: 220 9% 95%;
+
+    /* Primary brand colors - Purple gradient theme */
+    --primary: 262 90% 60%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 262 90% 70%;
+
+    /* Secondary colors - Teal accent */
+    --secondary: 180 78% 60%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-light: 180 78% 70%;
+
+    /* Status colors */
+    --success: 142 76% 46%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 60%;
+    --warning-foreground: 0 0% 100%;
+    --destructive: 0 84% 70%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Priority colors */
+    --priority-low: 142 76% 46%;
+    --priority-medium: 38 92% 60%;
+    --priority-high: 0 84% 70%;
+
+    /* UI elements */
+    --muted: 220 27% 16%;
+    --muted-foreground: 220 9% 60%;
+    --accent: 220 27% 16%;
+    --accent-foreground: 220 9% 95%;
+    --border: 220 27% 18%;
+    --input: 220 27% 18%;
+    --ring: 262 90% 60%;
+
+    /* Enhanced Sidebar colors for dark mode */
+    --sidebar-background: 220 27% 10%;
+    --sidebar-foreground: 220 9% 95%;
+    --sidebar-primary: 262 90% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 27% 20%; /* More visible hover in dark mode */
+    --sidebar-accent-foreground: 220 9% 95%;
+    --sidebar-border: 220 27% 18%;
+    --sidebar-ring: 262 90% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
+  }
+}
+
+@layer components {
+  /* Gradient backgrounds */
+  .gradient-bg {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
+  }
+
+  .gradient-bg-soft {
+    background: linear-gradient(135deg, hsl(var(--primary)/0.1) 0%, hsl(var(--secondary)/0.1) 100%);
+  }
+
+  /* Priority badges */
+  .priority-low {
+    @apply bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300;
+  }
+
+  .priority-medium {
+    @apply bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300;
+  }
+
+  .priority-high {
+    @apply bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300;
+  }
+
+  /* Loading spinner */
+  .loading-spinner {
+    @apply animate-spin rounded-full border-2 border-primary/20 border-t-primary;
+  }
+
+  /* Glass morphism effect */
+  .glass {
+    backdrop-filter: blur(10px);
+    background: hsl(var(--background)/0.8);
+    border: 1px solid hsl(var(--border)/0.2);
+  }
+
+  /* Smooth transitions */
+  .smooth-transition {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  /* Hover effects */
+  .hover-lift {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+
+  .hover-glow {
+    @apply transition-shadow duration-300 hover:shadow-lg hover:shadow-primary/20;
+  }
+}
+
+@layer utilities {
+  /* Animation keyframes */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+
+  @keyframes pulse-slow {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  @keyframes slide-in {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 2s ease-in-out infinite;
+  }
+
+  .animate-slide-in {
+    animation: slide-in 0.3s ease-out;
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.5s ease-out;
+  }
+}

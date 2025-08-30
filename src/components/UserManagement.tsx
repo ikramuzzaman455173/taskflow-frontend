@@ -1,0 +1,369 @@
+
+import React, { useState } from 'react';
+import { 
+  Users, 
+  Search, 
+  Trash2, 
+  Shield, 
+  User,
+  Mail,
+  Calendar,
+  MoreHorizontal,
+  AlertTriangle,
+  UserCheck,
+  UserX
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { toast } from 'react-toastify';
+import { useAuth } from '@/contexts/AuthContext';
+import BulkDeleteDialog from './BulkDeleteDialog';
+import UserTableRow from './UserTableRow';
+import UserPagination from './UserPagination';
+
+interface MockUser {
+  id: string;
+  name: string;
+  email: string;
+  role: 'user' | 'admin';
+  joinDate: string;
+  lastActive: string;
+  status: 'active' | 'inactive';
+  tasksCount: number;
+}
+
+export default function UserManagement() {
+  const { user: currentUser } = useAuth();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  
+  const [users, setUsers] = useState<MockUser[]>([
+    {
+      id: '1',
+      name: 'Md. Ikramuzzaman',
+      email: 'jakaria455173@gmail.com',
+      role: 'user',
+      joinDate: '2024-01-15',
+      lastActive: '2024-01-20',
+      status: 'active',
+      tasksCount: 12
+    },
+    {
+      id: 'admin1',
+      name: 'Admin User',
+      email: 'admin@taskflow.com',
+      role: 'admin',
+      joinDate: '2024-01-01',
+      lastActive: '2024-01-20',
+      status: 'active',
+      tasksCount: 0
+    },
+    {
+      id: '2',
+      name: 'John Smith',
+      email: 'john.smith@email.com',
+      role: 'user',
+      joinDate: '2024-01-18',
+      lastActive: '2024-01-19',
+      status: 'active',
+      tasksCount: 8
+    },
+    {
+      id: '3',
+      name: 'Sarah Wilson',
+      email: 'sarah.wilson@email.com',
+      role: 'user',
+      joinDate: '2024-01-10',
+      lastActive: '2024-01-17',
+      status: 'inactive',
+      tasksCount: 15
+    },
+    {
+      id: '4',
+      name: 'Mike Johnson',
+      email: 'mike.johnson@email.com',
+      role: 'user',
+      joinDate: '2024-01-12',
+      lastActive: '2024-01-20',
+      status: 'active',
+      tasksCount: 6
+    }
+  ]);
+
+  const filteredUsers = users.filter(user =>
+    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedUsers = filteredUsers.slice(startIndex, startIndex + itemsPerPage);
+
+  const selectableUsers = paginatedUsers.filter(user => user.id !== currentUser?.id);
+  const isAllSelected = selectableUsers.length > 0 && selectableUsers.every(user => selectedUsers.includes(user.id));
+  const isIndeterminate = selectedUsers.length > 0 && !isAllSelected;
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const newSelected = [...selectedUsers, ...selectableUsers.map(user => user.id)];
+      setSelectedUsers([...new Set(newSelected)]);
+    } else {
+      const selectableIds = selectableUsers.map(user => user.id);
+      setSelectedUsers(selectedUsers.filter(id => !selectableIds.includes(id)));
+    }
+  };
+
+  const handleSelectUser = (userId: string, selected: boolean) => {
+    if (selected) {
+      setSelectedUsers([...selectedUsers, userId]);
+    } else {
+      setSelectedUsers(selectedUsers.filter(id => id !== userId));
+    }
+  };
+
+  const handleDeleteUser = (userId: string, userName: string) => {
+    if (userId === currentUser?.id) {
+      toast.error("You cannot delete your own account.");
+      return;
+    }
+
+    setUsers(prev => prev.filter(user => user.id !== userId));
+    setSelectedUsers(prev => prev.filter(id => id !== userId));
+    toast.success(`${userName} has been removed from the system.`);
+  };
+
+  const handleBulkDeleteUsers = async () => {
+    const usersToDelete = users.filter(user => 
+      selectedUsers.includes(user.id) && user.id !== currentUser?.id
+    );
+    
+    if (usersToDelete.length === 0) {
+      toast.error("No users selected for deletion.");
+      return;
+    }
+
+    setUsers(prev => prev.filter(user => !selectedUsers.includes(user.id) || user.id === currentUser?.id));
+    setSelectedUsers([]);
+    toast.success(`${usersToDelete.length} users have been deleted successfully.`);
+  };
+
+  const toggleUserRole = (userId: string) => {
+    setUsers(prev => prev.map(user => {
+      if (user.id === userId) {
+        const newRole = user.role === 'admin' ? 'user' : 'admin';
+        toast.success(`${user.name} is now a ${newRole}.`);
+        return { ...user, role: newRole };
+      }
+      return user;
+    }));
+  };
+
+  const toggleUserStatus = (userId: string) => {
+    setUsers(prev => prev.map(user => {
+      if (user.id === userId) {
+        const newStatus = user.status === 'active' ? 'inactive' : 'active';
+        toast.success(`${user.name} is now ${newStatus}.`);
+        return { ...user, status: newStatus };
+      }
+      return user;
+    }));
+  };
+
+  const handleBulkStatusChange = (status: 'active' | 'inactive') => {
+    const usersToUpdate = users.filter(user => 
+      selectedUsers.includes(user.id) && user.id !== currentUser?.id
+    );
+    
+    if (usersToUpdate.length === 0) {
+      toast.error("No users selected for status change.");
+      return;
+    }
+
+    setUsers(prev => prev.map(user => 
+      selectedUsers.includes(user.id) && user.id !== currentUser?.id 
+        ? { ...user, status } 
+        : user
+    ));
+    
+    setSelectedUsers([]);
+    toast.success(`${usersToUpdate.length} users have been marked as ${status}.`);
+  };
+
+  const getSelectedUsersList = () => {
+    const selectedUserObjects = users.filter(user => selectedUsers.includes(user.id));
+    
+    if (selectedUserObjects.length === selectableUsers.length && selectableUsers.length > 0) {
+      return `All ${selectedUserObjects.length} users`;
+    }
+    
+    if (selectedUserObjects.length <= 3) {
+      return selectedUserObjects.map(user => user.name).join(', ');
+    }
+    
+    return `${selectedUserObjects.length} users selected`;
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    setSelectedUsers([]); // Clear selection when changing pages
+  };
+
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+    setSelectedUsers([]);
+  };
+
+  const handleGoToPage = (page: number) => {
+    setCurrentPage(page);
+    setSelectedUsers([]);
+  };
+
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-primary" />
+            <CardTitle>User Management</CardTitle>
+          </div>
+          <div className="flex items-center gap-2">
+            {selectedUsers.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => handleBulkStatusChange('active')}
+                  className="gap-2"
+                  size="sm"
+                >
+                  <UserCheck className="h-4 w-4" />
+                  Activate ({selectedUsers.length})
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleBulkStatusChange('inactive')}
+                  className="gap-2"
+                  size="sm"
+                >
+                  <UserX className="h-4 w-4" />
+                  Deactivate ({selectedUsers.length})
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => setIsBulkDeleteOpen(true)}
+                  className="gap-2"
+                  size="sm"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete ({selectedUsers.length})
+                </Button>
+              </div>
+            )}
+            <Badge variant="outline" className="text-sm">
+              {filteredUsers.length} users
+            </Badge>
+          </div>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="space-y-4">
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search users by name or email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        {/* Users Table */}
+        <div className="rounded-md border overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={isAllSelected}
+                      onCheckedChange={handleSelectAll}
+                      disabled={selectableUsers.length === 0}
+                      aria-label="Select all users"
+                      className={isIndeterminate ? "data-[state=checked]:bg-primary/50" : ""}
+                    />
+                  </TableHead>
+                  <TableHead>User</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Tasks</TableHead>
+                  <TableHead>Join Date</TableHead>
+                  <TableHead>Last Active</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedUsers.map((user) => (
+                  <UserTableRow
+                    key={user.id}
+                    user={user}
+                    isSelected={selectedUsers.includes(user.id)}
+                    isCurrentUser={user.id === currentUser?.id}
+                    onSelect={handleSelectUser}
+                    onDelete={handleDeleteUser}
+                    onToggleRole={toggleUserRole}
+                    onToggleStatus={toggleUserStatus}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+
+        {filteredUsers.length === 0 && (
+          <div className="text-center py-8">
+            <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">No users found matching your search.</p>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {filteredUsers.length > 0 && (
+          <UserPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            itemsPerPage={itemsPerPage}
+            totalItems={filteredUsers.length}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
+            onGoToPage={handleGoToPage}
+          />
+        )}
+
+        <BulkDeleteDialog
+          open={isBulkDeleteOpen}
+          onOpenChange={setIsBulkDeleteOpen}
+          title="Delete Selected Users"
+          description={`This will permanently delete the selected users: ${getSelectedUsersList()}. All user data and tasks will be lost.`}
+          confirmationText="Yes Delete Selected Users"
+          onConfirm={handleBulkDeleteUsers}
+          itemCount={selectedUsers.length}
+        />
+      </CardContent>
+    </Card>
+  );
+}
