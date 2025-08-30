@@ -105,6 +105,7 @@ export default function Login({ onToggleMode, isLogin }: LoginProps) {
       hasUppercase: /[A-Z]/.test(password),
       hasLowercase: /[a-z]/.test(password),
       hasNumber: /\d/.test(password),
+      // eslint-disable-next-line no-useless-escape
       hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
     };
   };
@@ -131,21 +132,21 @@ export default function Login({ onToggleMode, isLogin }: LoginProps) {
     const lowercase = 'abcdefghijklmnopqrstuvwxyz';
     const numbers = '0123456789';
     const specialChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
-    
+
     let password = '';
-    
+
     // Ensure at least one character from each category
     password += uppercase[Math.floor(Math.random() * uppercase.length)];
     password += lowercase[Math.floor(Math.random() * lowercase.length)];
     password += numbers[Math.floor(Math.random() * numbers.length)];
     password += specialChars[Math.floor(Math.random() * specialChars.length)];
-    
+
     // Fill remaining length with random characters
     const allChars = uppercase + lowercase + numbers + specialChars;
     for (let i = password.length; i < 12; i++) {
       password += allChars[Math.floor(Math.random() * allChars.length)];
     }
-    
+
     // Shuffle the password
     return password.split('').sort(() => 0.5 - Math.random()).join('');
   };
@@ -197,6 +198,7 @@ export default function Login({ onToggleMode, isLogin }: LoginProps) {
     try {
       if (isLogin) {
         const success = await login(formData.email, formData.password);
+        console.log("🚀 ~ handleSubmit ~ success:", success)
         if (success) {
           toast.success('🎉 Welcome back! Login successful!', {
             position: "top-right",
@@ -237,7 +239,7 @@ export default function Login({ onToggleMode, isLogin }: LoginProps) {
 
         const passwordValidation = validatePassword(formData.password);
         const allValid = Object.values(passwordValidation).every(Boolean);
-        
+
         if (!allValid) {
           toast.error('🔒 Password does not meet security requirements!', {
             position: "top-right",
@@ -277,7 +279,7 @@ export default function Login({ onToggleMode, isLogin }: LoginProps) {
         draggable: true,
       });
     }
-    
+
     setLoading(false);
   };
 
@@ -294,7 +296,7 @@ export default function Login({ onToggleMode, isLogin }: LoginProps) {
               variant="ghost"
               size="icon"
               onClick={toggleTheme}
-              className="h-8 w-8 rounded-full border border-border/30 hover:bg-accent"
+              className="h-8 w-8 rounded-full border border-border hover:bg-accent"
               title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
             >
               {theme === 'light' ? (
@@ -312,8 +314,8 @@ export default function Login({ onToggleMode, isLogin }: LoginProps) {
             {isLogin ? 'Welcome Back' : 'Create Account'}
           </CardTitle>
           <p className="text-muted-foreground">
-            {isLogin 
-              ? 'Sign in to your account to continue' 
+            {isLogin
+              ? 'Sign in to your account to continue'
               : 'Sign up to get started with TaskFlow'
             }
           </p>
@@ -345,7 +347,7 @@ export default function Login({ onToggleMode, isLogin }: LoginProps) {
                   Admin
                 </Button>
               </div>
-              
+
               <div className="p-4 bg-card border-2 border-border rounded-lg shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
                   <User className="h-4 w-4 text-primary" />
@@ -360,7 +362,7 @@ export default function Login({ onToggleMode, isLogin }: LoginProps) {
                   </p>
                 </div>
               </div>
-              
+
               <div className="p-4 bg-card border-2 border-border rounded-lg shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
                   <ShieldCheck className="h-4 w-4 text-orange-500" />
@@ -464,14 +466,14 @@ export default function Login({ onToggleMode, isLogin }: LoginProps) {
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-muted-foreground">Password Strength</span>
                         <span className={`text-sm font-medium ${
-                          passwordStrength < 40 ? 'text-red-500' : 
+                          passwordStrength < 40 ? 'text-red-500' :
                           passwordStrength < 80 ? 'text-yellow-500' : 'text-green-500'
                         }`}>
                           {getPasswordStrengthLabel(passwordStrength)}
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
+                        <div
                           className={`h-2 rounded-full transition-all duration-300 ${getPasswordStrengthColor(passwordStrength)}`}
                           style={{ width: `${passwordStrength}%` }}
                         />
@@ -522,7 +524,7 @@ export default function Login({ onToggleMode, isLogin }: LoginProps) {
                     'Create Account'
                   )}
                 </Button>
-                
+
                 <Button
                   type="button"
                   variant="outline"

@@ -4,13 +4,15 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Home, ArrowLeft, Search, AlertTriangle } from "lucide-react";
+import { Home, ArrowLeft, Search, AlertTriangle, Moon, Sun } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from '@/contexts/ThemeContext';
 
 const NotFound = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     console.error(
@@ -35,6 +37,23 @@ const NotFound = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/20 to-background p-4">
       <Card className="w-full max-w-lg border-2 border-border/50 shadow-xl backdrop-blur-sm bg-card/95">
         <CardHeader className="text-center pb-6">
+          {/* Theme Toggle Button */}
+          <div className="absolute top-4 right-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              className="h-8 w-8 rounded-full border border-border hover:bg-accent"
+              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            >
+              {theme === 'light' ? (
+                <Moon className="h-4 w-4" />
+              ) : (
+                <Sun className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+
           <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-destructive/10 flex items-center justify-center">
             <AlertTriangle className="h-10 w-10 text-destructive" />
           </div>
