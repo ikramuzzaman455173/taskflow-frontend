@@ -90,7 +90,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       params.set("order", opts?.order ?? "desc");
 
       const { data } = await api.get(
-        `/task/list${params.toString() ? `?${params.toString()}` : ""}`
+        `/tasks/list${params.toString() ? `?${params.toString()}` : ""}`
       );
       const list: TaskItem[] = data?.data ?? [];
       setTasks(list);
@@ -105,7 +105,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 
   const getTask = useCallback(async (id: string) => {
     try {
-      const { data } = await api.get(`/task/${id}`);
+      const { data } = await api.get(`/tasks/${id}`);
       return (data?.data as TaskItem) ?? null;
     } catch {
       return null;
@@ -132,7 +132,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       setTasks((cur) => [optimistic, ...cur]);
 
       try {
-        const { data } = await api.post("/task/create", input);
+        const { data } = await api.post("/tasks/create", input);
         const saved: TaskItem = data?.data;
         setTasks((cur) => cur.map((t) => (t._id === tempId ? saved : t)));
         return saved;
@@ -155,7 +155,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       const prev = tasks;
       setTasks((cur) => cur.map((t) => (t._id === id ? ({ ...t, ...input } as TaskItem) : t)));
       try {
-        const { data } = await api.put(`/task/${id}`, input);
+        const { data } = await api.put(`/tasks/${id}`, input);
         const updated: TaskItem = data?.data;
         setTasks((cur) => cur.map((t) => (t._id === id ? updated : t)));
         return updated;
@@ -172,7 +172,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       const prev = tasks;
       setTasks((cur) => cur.filter((t) => t._id !== id));
       try {
-        await api.delete(`/task/${id}`);
+        await api.delete(`/tasks/${id}`);
         return true;
       } catch {
         setTasks(prev);
@@ -187,7 +187,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       const prev = tasks;
       setTasks([]);
       try {
-        await api.delete("/task/removeAll");
+        await api.delete("/tasks/removeAll");
         return true;
       } catch {
         setTasks(prev);
@@ -201,7 +201,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     setLoadingSummary(true);
     setErrorSummary(null);
     try {
-      const { data } = await api.get("/task/summary");
+      const { data } = await api.get("/tasks/summary");
       setSummary((data?.data as TaskSummary) ?? null);
       return true;
     } catch (e: any) {
