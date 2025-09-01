@@ -71,7 +71,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     setLoadingProfile(true);
     setErrorProfile(null);
     try {
-      const { data } = await api.get("/profile");
+      const { data } = await api.get("/profile/me");
       setProfile(data?.data ?? null);
       return true;
     } catch (e: any) {
@@ -88,7 +88,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       const prev = profile;
       if (profile) setProfile({ ...profile, name: input.name, preferences: input.preferences ?? profile.preferences });
       try {
-        const { data } = await api.put("/profile", input);
+        const { data } = await api.put("/profile/update", input);
         setProfile(data?.data ?? null);
         return true;
       } catch (e: any) {
@@ -100,9 +100,9 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     [profile]
   );
 
-  const changePassword = useCallback(async (input: { currentPassword: string; newPassword: string }) => {
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
     try {
-      await api.put("/profile/password", input);
+      await api.put("/profile/password", { currentPassword, newPassword });
       return true;
     } catch (e: any) {
       setErrorProfile(e?.response?.data?.error || "Failed to change password");

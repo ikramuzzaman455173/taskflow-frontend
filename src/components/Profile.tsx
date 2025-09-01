@@ -1,90 +1,89 @@
+import React, { useState } from "react";
+import { User, Mail, Lock, LogOut, Save, Github } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
+import LoadingSpinner from "./LoadingSpinner";
+import { toast } from "react-toastify";
 
-import React, { useState } from 'react';
-import { User, Mail, Lock, LogOut, Save, Github } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { useAuth } from '@/contexts/AuthContext';
-import LoadingSpinner from './LoadingSpinner';
-import { useToast } from '@/hooks/use-toast';
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Profile() {
   const { user, logout, updateProfile, changePassword } = useAuth();
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
   const [profileData, setProfileData] = useState({
-    name: user?.name || '',
-    email: user?.email || ''
+    name: user?.name || "",
+    email: user?.email || ""
   });
   const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: ""
   });
+
+  // inside your component
+  const [showPassword, setShowPassword] = useState({
+    current: false,
+    new: false,
+    confirm: false
+  });
+
+  // toggle function
+  const togglePassword = (field: "current" | "new" | "confirm") => {
+    setShowPassword((prev) => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
+  };
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    updateProfile(profileData.name, profileData.email);
-    toast({
-      title: "Profile Updated",
-      description: "Your profile information has been updated successfully.",
-    });
-    
-    setLoading(false);
+    setProfileLoading(true);
+    const success = await updateProfile(profileData.name, profileData.email);
+    if (success) {
+      toast.success("Profile updated successfully");
+    }
+    setProfileLoading(false);
   };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast({
-        title: "Password Mismatch",
-        description: "New password and confirm password don't match.",
-        variant: "destructive",
-      });
+
+    if (passwordData?.newPassword !== passwordData?.confirmPassword) {
+      toast.error("Passwords do not match");
       return;
     }
 
-    if (passwordData.newPassword.length < 6) {
-      toast({
-        title: "Password Too Short",
-        description: "Password must be at least 6 characters long.",
-        variant: "destructive",
-      });
+    if (passwordData?.newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters long.");
       return;
     }
 
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const success = changePassword(passwordData.currentPassword, passwordData.newPassword);
-    
+    setPasswordLoading(true);
+
+    const success = await changePassword(
+      passwordData?.currentPassword,
+      passwordData?.newPassword
+    );
+    console.log("🚀 ~ handlePasswordChange ~ success:", success)
+
     if (success) {
-      toast({
-        title: "Password Changed",
-        description: "Your password has been changed successfully.",
-      });
-      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    } else {
-      toast({
-        title: "Invalid Password",
-        description: "Current password is incorrect.",
-        variant: "destructive",
-      });
+      toast.success("Password changed successfully");
+      // setPasswordData({
+      //   currentPassword: "",
+      //   newPassword: "",
+      //   confirmPassword: ""
+      // });
+      setPasswordLoading(false);
     }
-    
-    setLoading(false);
+    setPasswordLoading(false);
   };
 
   return (
-    <div className="space-y-6 animate-fade-in-up max-w-2xl">
+    <div className="space-y-6 animate-fade-in-up max-w-full">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Profile Settings</h1>
         <p className="text-muted-foreground">
@@ -104,7 +103,7 @@ export default function Profile() {
           <form onSubmit={handleProfileUpdate} className="space-y-4">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-16 h-16 rounded-full gradient-bg flex items-center justify-center text-white text-xl font-bold">
-                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                {user?.name?.charAt(0)?.toUpperCase() || "U"}
               </div>
               <div>
                 <h3 className="font-semibold text-lg">{user?.name}</h3>
@@ -117,7 +116,12 @@ export default function Profile() {
                 <Input
                   id="profileName"
                   value={profileData.name}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={(e) =>
+                    setProfileData((prev) => ({
+                      ...prev,
+                      name: e.target.value
+                    }))
+                  }
                   placeholder="Enter your full name"
                 />
               </div>
@@ -130,7 +134,12 @@ export default function Profile() {
                     id="profileEmail"
                     type="email"
                     value={profileData.email}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={(e) =>
+                      setProfileData((prev) => ({
+                        ...prev,
+                        email: e.target.value
+                      }))
+                    }
                     placeholder="Enter your email"
                     className="pl-10"
                   />
@@ -138,8 +147,16 @@ export default function Profile() {
               </div>
             </div>
 
-            <Button type="submit" disabled={loading} className="gradient-bg">
-              {loading ? <LoadingSpinner size="sm" /> : <Save className="h-4 w-4 mr-2" />}
+            <Button
+              type="submit"
+              disabled={profileLoading}
+              className="gradient-bg"
+            >
+              {profileLoading ? (
+                <LoadingSpinner size="sm" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
               Save Changes
             </Button>
           </form>
@@ -156,43 +173,110 @@ export default function Profile() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handlePasswordChange} className="space-y-4">
+            {/* Current Password */}
             <div className="space-y-2">
               <Label htmlFor="currentPassword">Current Password</Label>
-              <Input
-                id="currentPassword"
-                type="password"
-                value={passwordData.currentPassword}
-                onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
-                placeholder="Enter current password"
-              />
+              <div className="relative">
+                <Input
+                  id="currentPassword"
+                  type={showPassword.current ? "text" : "password"}
+                  value={passwordData.currentPassword}
+                  onChange={(e) =>
+                    setPasswordData((prev) => ({
+                      ...prev,
+                      currentPassword: e.target.value
+                    }))
+                  }
+                  placeholder="Enter current password"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => togglePassword("current")}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                >
+                  {showPassword.current ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* New Password */}
               <div className="space-y-2">
                 <Label htmlFor="newPassword">New Password</Label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  value={passwordData.newPassword}
-                  onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
-                  placeholder="Enter new password"
-                />
+                <div className="relative">
+                  <Input
+                    id="newPassword"
+                    type={showPassword.new ? "text" : "password"}
+                    value={passwordData.newPassword}
+                    onChange={(e) =>
+                      setPasswordData((prev) => ({
+                        ...prev,
+                        newPassword: e.target.value
+                      }))
+                    }
+                    placeholder="Enter new password"
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => togglePassword("new")}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                  >
+                    {showPassword.new ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </div>
 
+              {/* Confirm Password */}
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={passwordData.confirmPassword}
-                  onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                  placeholder="Confirm new password"
-                />
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showPassword.confirm ? "text" : "password"}
+                    value={passwordData.confirmPassword}
+                    onChange={(e) =>
+                      setPasswordData((prev) => ({
+                        ...prev,
+                        confirmPassword: e.target.value
+                      }))
+                    }
+                    placeholder="Confirm new password"
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => togglePassword("confirm")}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                  >
+                    {showPassword.confirm ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
 
-            <Button type="submit" disabled={loading} className="gradient-bg">
-              {loading ? <LoadingSpinner size="sm" /> : <Lock className="h-4 w-4 mr-2" />}
+            <Button
+              type="submit"
+              disabled={passwordLoading}
+              className="gradient-bg"
+            >
+              {passwordLoading ? (
+                <LoadingSpinner size="sm" />
+              ) : (
+                <Lock className="h-4 w-4 mr-2" />
+              )}
               Change Password
             </Button>
           </form>
@@ -217,18 +301,23 @@ export default function Profile() {
               Sign Out
             </Button>
           </div>
-
+          {/* git hub account this project */}
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <div>
-              <h4 className="font-medium">Demo Account</h4>
+              <h4 className="font-medium">GitHub Repository</h4>
               <p className="text-sm text-muted-foreground">
-                This is a demo account with sample data
+                View the source code for this project
               </p>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Github className="h-4 w-4" />
-              <span>Demo Mode</span>
-            </div>
+            <Button
+              variant="outline"
+              onClick={() =>
+                window.open("https://github.com/your-repo", "_blank")
+              }
+            >
+              <Github className="h-4 w-4 mr-2" />
+              GitHub
+            </Button>
           </div>
         </CardContent>
       </Card>
