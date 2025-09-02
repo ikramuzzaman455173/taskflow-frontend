@@ -10,6 +10,8 @@ import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./contexts/ProtectedRoute";
+import { DashboardProvider } from "./contexts/DashboardContext";
+import { AdminProvider } from "./contexts/AdminContext";
 
 const queryClient = new QueryClient();
 
@@ -18,46 +20,53 @@ const App = () => (
     <TooltipProvider>
       <ThemeProvider>
         <AuthProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <DashboardProvider>
+            <AdminProvider>
+              <BrowserRouter>
+                <Routes>
+                  <Route
+                    path="/"
+                    element={<Navigate to="/dashboard" replace />}
+                  />
 
-              <Route
-                path="/login"
-                element={
-                  <ProtectedRoute requireAuth={false}>
-                    <LoginPage />
-                  </ProtectedRoute>
-                }
+                  <Route
+                    path="/login"
+                    element={
+                      <ProtectedRoute requireAuth={false}>
+                        <LoginPage />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute requireAuth={true}>
+                        <DashboardPage />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+
+              <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={true}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="colored"
+                className="toast-container"
+                toastClassName="toast-custom"
               />
-
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute requireAuth={true}>
-                    <DashboardPage />
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-
-          <ToastContainer
-            position="top-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop={true}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="colored"
-            className="toast-container"
-            toastClassName="toast-custom"
-          />
+            </AdminProvider>
+          </DashboardProvider>
         </AuthProvider>
       </ThemeProvider>
     </TooltipProvider>
