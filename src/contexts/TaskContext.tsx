@@ -187,7 +187,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       const prev = tasks;
       setTasks([]);
       try {
-        await api.delete("/tasks/removeAll");
+        await api.delete("/tasks/remove-all");
         return true;
       } catch {
         setTasks(prev);

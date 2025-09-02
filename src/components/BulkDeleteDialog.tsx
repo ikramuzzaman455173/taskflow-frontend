@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { AlertTriangle, Loader2 } from 'lucide-react';
+import { AlertTriangle, Loader2, Copy, Check } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -31,16 +30,17 @@ export default function BulkDeleteDialog({
   confirmationText,
   onConfirm,
   itemCount,
-  loading = false
+  loading = false,
 }: BulkDeleteDialogProps) {
   const [inputValue, setInputValue] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const isConfirmationValid = inputValue === confirmationText;
 
   const handleConfirm = async () => {
     if (!isConfirmationValid) return;
-    
+
     setIsDeleting(true);
     try {
       await onConfirm();
@@ -60,6 +60,16 @@ export default function BulkDeleteDialog({
     }
   };
 
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(confirmationText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy:', error);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -76,7 +86,8 @@ export default function BulkDeleteDialog({
         <div className="space-y-4">
           <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
             <p className="text-sm text-destructive font-medium">
-              ⚠️ This will permanently delete {itemCount} item{itemCount !== 1 ? 's' : ''}
+              ⚠️ This will permanently delete {itemCount} item
+              {itemCount !== 1 ? 's' : ''}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               This action cannot be undone.
@@ -87,14 +98,34 @@ export default function BulkDeleteDialog({
             <Label htmlFor="confirmation">
               Type "{confirmationText}" to confirm:
             </Label>
-            <Input
-              id="confirmation"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder={confirmationText}
-              disabled={isDeleting}
-              className="font-mono"
-            />
+            <div className="flex items-center gap-2">
+              <Input
+                id="confirmation"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder={confirmationText}
+                disabled={isDeleting}
+                className="font-mono"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handleCopy}
+                disabled={copied}
+              >
+                {copied ? (
+                  <Check className="h-4 w-4 text-green-600" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+            {copied && (
+              <p className="text-xs text-green-600 font-medium">
+                Copied to clipboard!
+              </p>
+            )}
           </div>
 
           <div className="flex gap-2 justify-end">

@@ -68,15 +68,14 @@ export default function Profile() {
       passwordData?.currentPassword,
       passwordData?.newPassword
     );
-    console.log("🚀 ~ handlePasswordChange ~ success:", success)
 
     if (success) {
       toast.success("Password changed successfully");
-      // setPasswordData({
-      //   currentPassword: "",
-      //   newPassword: "",
-      //   confirmPassword: ""
-      // });
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: ""
+      });
       setPasswordLoading(false);
     }
     setPasswordLoading(false);
@@ -324,4 +323,3 @@ export default function Profile() {
     </div>
   );
 }
-
