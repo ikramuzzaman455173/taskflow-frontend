@@ -56,7 +56,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
     {
       id: 'pending',
       icon: Clock,
-      label: 'Pending',
+      label: 'In Progress',
       count: getTasksByStatus('pending').length,
     },
     {
