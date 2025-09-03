@@ -1,6 +1,8 @@
+
 // src/contexts/TaskContext.tsx
 import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
 import api from "@/lib/api";
+import { toast } from "react-toastify";
 
 // —— Types aligned with your Task model/controller ——
 export type TaskPriority = "low" | "medium" | "high";
@@ -69,6 +71,15 @@ interface TaskContextType {
 
 const TaskContext = createContext<TaskContextType | null>(null);
 
+function getApiErrorMessage(e: any, fallback = "Something went wrong") {
+  return (
+    e?.response?.data?.error ||
+    e?.response?.data?.message ||
+    e?.message ||
+    fallback
+  );
+}
+
 export function TaskProvider({ children }: { children: React.ReactNode }) {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [summary, setSummary] = useState<TaskSummary | null>(null);
@@ -96,7 +107,9 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       setTasks(list);
       return true;
     } catch (e: any) {
-      setErrorList(e?.response?.data?.error || "Failed to load tasks");
+      const msg = getApiErrorMessage(e, "Failed to load tasks");
+      setErrorList(msg);
+      toast.error(msg);
       return false;
     } finally {
       setLoadingList(false);
@@ -107,7 +120,9 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data } = await api.get(`/tasks/${id}`);
       return (data?.data as TaskItem) ?? null;
-    } catch {
+    } catch (e: any) {
+      const msg = getApiErrorMessage(e, "Failed to fetch task");
+      toast.error(msg);
       return null;
     }
   }, []);
@@ -135,10 +150,11 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         const { data } = await api.post("/tasks/create", input);
         const saved: TaskItem = data?.data;
         setTasks((cur) => cur.map((t) => (t._id === tempId ? saved : t)));
+        // toast.success("Task created");
         return saved;
-      } catch {
-        // rollback
+      } catch (e: any) {
         setTasks((cur) => cur.filter((t) => t._id !== tempId));
+        toast.error(getApiErrorMessage(e, "Failed to create task"));
         return null;
       }
     },
@@ -158,9 +174,11 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         const { data } = await api.put(`/tasks/${id}`, input);
         const updated: TaskItem = data?.data;
         setTasks((cur) => cur.map((t) => (t._id === id ? updated : t)));
+        // toast.success("Task updated");
         return updated;
-      } catch {
+      } catch (e: any) {
         setTasks(prev);
+        toast.error(getApiErrorMessage(e, "Failed to update task"));
         return null;
       }
     },
@@ -173,9 +191,11 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       setTasks((cur) => cur.filter((t) => t._id !== id));
       try {
         await api.delete(`/tasks/${id}`);
+        // toast.success("Task removed");
         return true;
-      } catch {
+      } catch (e: any) {
         setTasks(prev);
+        toast.error(getApiErrorMessage(e, "Failed to remove task"));
         return false;
       }
     },
@@ -183,14 +203,16 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   );
 
   const removeAll = useCallback(
-    async () => {
+    async (status: string) => {
       const prev = tasks;
       setTasks([]);
       try {
-        await api.delete("/tasks/remove-all");
+        await api.delete("/tasks/remove-all", { data: { status } });
+        // toast.success("All tasks removed");
         return true;
-      } catch {
+      } catch (e: any) {
         setTasks(prev);
+        toast.error(getApiErrorMessage(e, "Failed to remove all tasks"));
         return false;
       }
     },
@@ -205,7 +227,9 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       setSummary((data?.data as TaskSummary) ?? null);
       return true;
     } catch (e: any) {
-      setErrorSummary(e?.response?.data?.error || "Failed to load summary");
+      const msg = getApiErrorMessage(e, "Failed to load summary");
+      setErrorSummary(msg);
+      toast.error(msg);
       return false;
     } finally {
       setLoadingSummary(false);
@@ -227,10 +251,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     [tasks]
   );
 
-  const getOverdueTasks = useCallback(
-    () => getTasksByStatus("overdue"),
-    [getTasksByStatus]
-  );
+  const getOverdueTasks = useCallback(() => getTasksByStatus("overdue"), [getTasksByStatus]);
 
   const value = useMemo(
     () => ({
@@ -249,7 +270,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       setTasks,
       fetchSummary,
       getTasksByStatus, // NEW
-      getOverdueTasks,  // NEW
+      getOverdueTasks, // NEW
     }),
     [
       tasks,

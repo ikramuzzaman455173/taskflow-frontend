@@ -1,33 +1,39 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Plus, Search, Filter, SortAsc, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import React, { useState, useMemo, useEffect } from "react";
+import { Plus, Search, Filter, SortAsc, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { TaskItem, TaskStatus, TaskPriority, useTasks } from '@/contexts/TaskContext';
-import TaskCard from './TaskCard';
-import TaskDialog from './TaskDialog';
-import BulkDeleteDialog from './BulkDeleteDialog';
-import { toast } from 'react-toastify';
-import { useAuth } from '@/contexts/AuthContext';
+  SelectValue
+} from "@/components/ui/select";
+import {
+  TaskItem,
+  TaskStatus,
+  TaskPriority,
+  useTasks
+} from "@/contexts/TaskContext";
+import TaskCard from "./TaskCard";
+import TaskDialog from "./TaskDialog";
+import BulkDeleteDialog from "./BulkDeleteDialog";
+import { toast } from "react-toastify";
 
 interface TaskListProps {
-  status: TaskStatus | 'all' | 'overdue';
+  status: TaskStatus | "all" | "overdue";
   title: string;
 }
 
-type SortKey = 'createdAt' | 'title' | 'priority' | 'dueDate';
+type SortKey = "createdAt" | "title" | "priority" | "dueDate";
 
 export default function TaskList({ status, title }: TaskListProps) {
   const { getTasksByStatus, removeAll } = useTasks();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<SortKey>('createdAt');
-  const [filterPriority, setFilterPriority] = useState<TaskPriority | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<SortKey>("createdAt");
+  const [filterPriority, setFilterPriority] = useState<TaskPriority | "all">(
+    "all"
+  );
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -52,26 +58,32 @@ export default function TaskList({ status, title }: TaskListProps) {
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter((t) => {
-        const title = (t.title ?? '').toLowerCase();
-        const desc = (t.description ?? '').toLowerCase();
+        const title = (t.title ?? "").toLowerCase();
+        const desc = (t.description ?? "").toLowerCase();
         return title.includes(q) || desc.includes(q);
       });
     }
 
     // priority filter
-    if (filterPriority !== 'all') {
+    if (filterPriority !== "all") {
       list = list.filter((t) => t.priority === filterPriority);
     }
 
     // sort
-    const priorityOrder: Record<TaskPriority, number> = { high: 3, medium: 2, low: 1 };
+    const priorityOrder: Record<TaskPriority, number> = {
+      high: 3,
+      medium: 2,
+      low: 1
+    };
     list.sort((a, b) => {
       switch (sortBy) {
-        case 'title':
-          return (a.title ?? '').localeCompare(b.title ?? '');
-        case 'priority':
-          return (priorityOrder[b.priority] ?? 0) - (priorityOrder[a.priority] ?? 0);
-        case 'dueDate': {
+        case "title":
+          return (a.title ?? "").localeCompare(b.title ?? "");
+        case "priority":
+          return (
+            (priorityOrder[b.priority] ?? 0) - (priorityOrder[a.priority] ?? 0)
+          );
+        case "dueDate": {
           const at = ts(a.dueDate ?? undefined);
           const bt = ts(b.dueDate ?? undefined);
           // push undated to bottom
@@ -80,7 +92,7 @@ export default function TaskList({ status, title }: TaskListProps) {
           if (bt === 0) return -1;
           return at - bt; // earliest first
         }
-        case 'createdAt':
+        case "createdAt":
         default: {
           const at = ts(a.createdAt);
           const bt = ts(b.createdAt);
@@ -101,15 +113,15 @@ export default function TaskList({ status, title }: TaskListProps) {
   };
 
   const handlePriorityChange = (value: string) => {
-    setFilterPriority(value as TaskPriority | 'all');
+    setFilterPriority(value as TaskPriority | "all");
   };
 
-  const handleBulkDelete = async () => {
-    const ok = await removeAll();
+  const handleBulkDelete = async (taskStatus: string) => {
+    const ok = await removeAll(taskStatus);
     if (ok) {
-      toast.success('All tasks have been deleted successfully');
+      toast.success(`All ${taskStatus} tasks deleted successfully.`);
     } else {
-      toast.error('Failed to delete all tasks. Please try again.');
+      toast.error(`Failed to delete all ${taskStatus} tasks. Please try again.`);
     }
   };
 
@@ -128,7 +140,7 @@ export default function TaskList({ status, title }: TaskListProps) {
         <div>
           <h1 className="text-3xl font-bold text-foreground">{title}</h1>
           <p className="text-muted-foreground">
-            {tasks.length} task{tasks.length !== 1 ? 's' : ''} found
+            {tasks.length} task{tasks.length !== 1 ? "s" : ""} found
           </p>
         </div>
 
@@ -210,7 +222,12 @@ export default function TaskList({ status, title }: TaskListProps) {
           {/* Load More Button */}
           {hasMoreTasks && (
             <div className="flex justify-center pt-6">
-              <Button onClick={handleLoadMore} variant="outline" className="gap-2" size="lg">
+              <Button
+                onClick={handleLoadMore}
+                variant="outline"
+                className="gap-2"
+                size="lg"
+              >
                 <Plus className="h-4 w-4" />
                 Load More Tasks ({tasks.length - visibleTasks} remaining)
               </Button>
@@ -224,12 +241,15 @@ export default function TaskList({ status, title }: TaskListProps) {
           </div>
           <h3 className="text-lg font-semibold mb-2">No tasks found</h3>
           <p className="text-muted-foreground mb-4">
-            {searchQuery || filterPriority !== 'all'
-              ? 'Try adjusting your search or filters'
-              : 'Get started by creating your first task'}
+            {searchQuery || filterPriority !== "all"
+              ? "Try adjusting your search or filters"
+              : "Get started by creating your first task"}
           </p>
-          {!searchQuery && filterPriority === 'all' && (
-            <Button onClick={() => setIsCreateDialogOpen(true)} className="gradient-bg">
+          {!searchQuery && filterPriority === "all" && (
+            <Button
+              onClick={() => setIsCreateDialogOpen(true)}
+              className="gradient-bg"
+            >
               <Plus className="h-4 w-4 mr-2" />
               Add New Task
             </Button>
@@ -238,7 +258,10 @@ export default function TaskList({ status, title }: TaskListProps) {
       )}
 
       {/* Dialogs */}
-      <TaskDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
+      <TaskDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+      />
 
       <TaskDialog
         task={editingTask}
@@ -252,10 +275,10 @@ export default function TaskList({ status, title }: TaskListProps) {
       <BulkDeleteDialog
         open={isBulkDeleteOpen}
         onOpenChange={setIsBulkDeleteOpen}
-        title="Delete All Tasks"
+        title={`Delete All ${status} Tasks`}
         description="This will permanently delete all your tasks. This action cannot be undone."
-        confirmationText="Yes Delete My All Task"
-        onConfirm={handleBulkDelete}
+        confirmationText={`Yes Delete My All ${status} Tasks`}
+        onConfirm={() => handleBulkDelete(status)}
         itemCount={tasks.length}
       />
     </div>

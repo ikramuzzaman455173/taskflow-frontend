@@ -102,7 +102,7 @@ export default function Login({ onToggleMode, isLogin }: LoginProps) {
       password: ""
     });
     setShowPassword(false);
-    toast.success("Form cleared successfully!", {
+    toast.info("Form cleared successfully!", {
       position: "top-right",
       autoClose: 2000,
       hideProgressBar: false,

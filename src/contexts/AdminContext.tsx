@@ -1,7 +1,15 @@
+
 // src/contexts/AdminContext.tsx
-import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState
+} from "react";
 import api from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "react-toastify";
 
 export interface AdminUser {
   id: string;
@@ -32,6 +40,15 @@ interface AdminContextType {
 
 const AdminContext = createContext<AdminContextType | null>(null);
 
+function getApiErrorMessage(e: any, fallback = "Something went wrong") {
+  return (
+    e?.response?.data?.error ||
+    e?.response?.data?.message ||
+    e?.message ||
+    fallback
+  );
+}
+
 export function AdminProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
@@ -46,76 +63,120 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     try {
       const params = new URLSearchParams();
       if (opts?.search) params.set("search", opts.search);
-      const { data } = await api.get(`/admin/users${params.toString() ? `?${params.toString()}` : ""}`);
+      const { data } = await api.get(
+        `/admin/users${params.toString() ? `?${params.toString()}` : ""}`
+      );
       const list: AdminUser[] = data?.data ?? [];
       setUsers(list);
       return true;
-    } catch (e: unknown) {
-      if (e && typeof e === "object" && "response" in e && e.response && typeof e.response === "object" && "data" in e.response && e.response.data && typeof e.response.data === "object" && "error" in e.response.data) {
-        setError((e as { response: { data: { error: string } } }).response.data.error);
-      } else {
-        setError("Failed to load users");
-      }
+    } catch (e: any) {
+      const msg = getApiErrorMessage(e, "Failed to load users");
+      setError(msg);
+      toast.error(msg);
       return false;
     } finally {
       setLoading(false);
     }
   }, []);
 
+  // ——— Guard for admin-only mutations ———
+  const ensureAdmin = useCallback(() => {
+    if (!isAdmin) {
+      toast.error("You don't have permission to perform this action");
+      return false;
+    }
+    return true;
+  }, [isAdmin]);
+
   // ——— Mutations with optimistic UI ———
-  const makeAdmin = useCallback(async (id: string) => {
-    const prev = users;
-    setUsers((cur) => cur.map((u) => (u.id === id ? { ...u, role: "admin" } : u)));
-    try {
-      const { data } = await api.patch(`/admin/users/${id}/make-admin`);
-      const role = data?.data?.role as AdminUser["role"]; // sync from server
-      setUsers((cur) => cur.map((u) => (u.id === id ? { ...u, role } : u)));
-      return true;
-    } catch (e) {
-      setUsers(prev);
-      return false;
-    }
-  }, [users]);
+  const makeAdmin = useCallback(
+    async (id: string) => {
+      if (!ensureAdmin()) return false;
+      const prev = users;
+      setUsers((cur) =>
+        cur.map((u) => (u.id === id ? { ...u, role: "admin" } : u))
+      );
+      try {
+        const { data } = await api.patch(`/admin/users/${id}/make-admin`);
+        const role = (data?.data?.role as AdminUser["role"]) || "admin"; // sync from server
+        setUsers((cur) => cur.map((u) => (u.id === id ? { ...u, role } : u)));
+        // toast.success("Granted admin access");
+        return true;
+      } catch (e: any) {
+        setUsers(prev);
+        toast.error(getApiErrorMessage(e, "Failed to grant admin access"));
+        return false;
+      }
+    },
+    [users, ensureAdmin]
+  );
 
-  const activate = useCallback(async (id: string) => {
-    const prev = users;
-    setUsers((cur) => cur.map((u) => (u.id === id ? { ...u, status: "active" } : u)));
-    try {
-      const { data } = await api.patch(`/admin/users/${id}/activate`);
-      const status = data?.data?.status as AdminUser["status"];
-      setUsers((cur) => cur.map((u) => (u.id === id ? { ...u, status } : u)));
-      return true;
-    } catch (e) {
-      setUsers(prev);
-      return false;
-    }
-  }, [users]);
+  const activate = useCallback(
+    async (id: string) => {
+      if (!ensureAdmin()) return false;
+      const prev = users;
+      setUsers((cur) =>
+        cur.map((u) => (u.id === id ? { ...u, status: "active" } : u))
+      );
+      try {
+        const { data } = await api.patch(`/admin/users/${id}/activate`);
+        const status = (data?.data?.status as AdminUser["status"]) || "active";
+        setUsers((cur) => cur.map((u) => (u.id === id ? { ...u, status } : u)));
+        // toast.success("User activated");
+        return true;
+      } catch (e: any) {
+        setUsers(prev);
+        toast.error(getApiErrorMessage(e, "Failed to activate user"));
+        return false;
+      }
+    },
+    [users, ensureAdmin]
+  );
 
-  const deactivate = useCallback(async (id: string) => {
-    const prev = users;
-    setUsers((cur) => cur.map((u) => (u.id === id ? { ...u, status: "inactive" } : u)));
-    try {
-      const { data } = await api.patch(`/admin/users/${id}/deactivate`);
-      const status = data?.data?.status as AdminUser["status"];
-      setUsers((cur) => cur.map((u) => (u.id === id ? { ...u, status } : u)));
-      return true;
-    } catch (e) {
-      setUsers(prev);
-      return false;
-    }
-  }, [users]);
+  const deactivate = useCallback(
+    async (id: string) => {
+      if (!ensureAdmin()) return false;
+      const prev = users;
+      setUsers((cur) =>
+        cur.map((u) => (u.id === id ? { ...u, status: "inactive" } : u))
+      );
+      try {
+        const { data } = await api.patch(`/admin/users/${id}/deactivate`);
+        const status =
+          (data?.data?.status as AdminUser["status"]) || "inactive";
+        setUsers((cur) => cur.map((u) => (u.id === id ? { ...u, status } : u)));
+        // toast.success("User deactivated");
+        return true;
+      } catch (e: any) {
+        setUsers(prev);
+        toast.error(getApiErrorMessage(e, "Failed to deactivate user"));
+        return false;
+      }
+    },
+    [users, ensureAdmin]
+  );
 
-  const removeUser = useCallback(async (id: string) => {
-    const prev = users;
-    setUsers((cur) => cur.filter((u) => u.id !== id));
-    try {
-      await api.delete(`/admin/users/${id}`);
-      return true;
-    } catch (e) {
-      setUsers(prev);
-      return false;
-    }
-  }, [users]);
+  const removeUser = useCallback(
+    async (id: string) => {
+      if (!ensureAdmin()) return false;
+      if (user?.id && user.id === id) {
+        toast.error("You cannot remove your own account");
+        return false;
+      }
+      const prev = users;
+      setUsers((cur) => cur.filter((u) => u.id !== id));
+      try {
+        await api.delete(`/admin/users/${id}`);
+        // toast.success("User removed");
+        return true;
+      } catch (e: any) {
+        setUsers(prev);
+        toast.error(getApiErrorMessage(e, "Failed to remove user"));
+        return false;
+      }
+    },
+    [users, ensureAdmin, user?.id]
+  );
 
   const value = useMemo(
     () => ({
@@ -128,12 +189,24 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       activate,
       deactivate,
       removeUser,
-      setUsers,
+      setUsers
     }),
-    [users, loading, error, isAdmin, fetchUsers, makeAdmin, activate, deactivate, removeUser]
+    [
+      users,
+      loading,
+      error,
+      isAdmin,
+      fetchUsers,
+      makeAdmin,
+      activate,
+      deactivate,
+      removeUser
+    ]
   );
 
-  return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
+  return (
+    <AdminContext.Provider value={value}>{children}</AdminContext.Provider>
+  );
 }
 
 export const useAdmin = () => {
@@ -141,4 +214,3 @@ export const useAdmin = () => {
   if (!ctx) throw new Error("useAdmin must be used within an AdminProvider");
   return ctx;
 };
-

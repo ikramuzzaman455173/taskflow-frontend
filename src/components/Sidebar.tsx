@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
-import { 
-  LayoutDashboard, 
-  CheckSquare, 
-  Clock, 
-  AlertTriangle, 
-  Settings, 
+import {
+  LayoutDashboard,
+  CheckSquare,
+  Clock,
+  AlertTriangle,
+  Settings,
   User,
   Moon,
   Sun,
@@ -110,7 +110,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
-          
+
           return (
             <button
               key={item.id}
@@ -118,8 +118,8 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
               title={item.label}
               className={cn(
                 'w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 border-2',
-                isActive 
-                  ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-md border-sidebar-primary/30 scale-[1.02]' 
+                isActive
+                  ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-md border-sidebar-primary/30 scale-[1.02]'
                   : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground border-transparent hover:border-sidebar-border hover:shadow-sm hover:scale-[1.01]'
               )}
             >
@@ -130,8 +130,8 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
               {item.count > 0 && (
                 <span className={cn(
                   'text-xs px-2.5 py-1 rounded-full font-semibold border',
-                  isActive 
-                    ? 'bg-sidebar-primary-foreground/20 text-sidebar-primary-foreground border-sidebar-primary-foreground/30' 
+                  isActive
+                    ? 'bg-sidebar-primary-foreground/20 text-sidebar-primary-foreground border-sidebar-primary-foreground/30'
                     : 'bg-sidebar-accent text-sidebar-accent-foreground border-sidebar-border'
                 )}>
                   {item.count}
@@ -152,7 +152,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
           {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
           <span>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
         </button>
-        
+
         {/* Profile */}
         <button
           onClick={() => onTabChange('profile')}
