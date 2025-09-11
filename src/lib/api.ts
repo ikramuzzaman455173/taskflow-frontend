@@ -2,8 +2,9 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 
 const api: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
-  withCredentials: true,
+  // baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL: "https://taskflow-backend-ruddy.vercel.app/api",
+  withCredentials: true
 });
 
 let refreshing = false;
@@ -15,7 +16,9 @@ type PendingRequest = {
 let queue: PendingRequest[] = [];
 
 function runQueue(err?: unknown) {
-  queue.forEach((p) => (err ? p.reject(err) : p.resolve(Promise.resolve({} as AxiosResponse))));
+  queue.forEach((p) =>
+    err ? p.reject(err) : p.resolve(Promise.resolve({} as AxiosResponse))
+  );
   queue = [];
 }
 
@@ -27,7 +30,9 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    const original = error.config as (AxiosRequestConfig & { _retry?: boolean }) | undefined;
+    const original = error.config as
+      | (AxiosRequestConfig & { _retry?: boolean })
+      | undefined;
 
     if (error.response?.status === 401 && original && !original._retry) {
       original._retry = true;
@@ -47,7 +52,7 @@ api.interceptors.response.use(
       return new Promise<AxiosResponse>((resolve, reject) => {
         queue.push({
           resolve: () => resolve(api(original)),
-          reject,
+          reject
         });
       });
     }
