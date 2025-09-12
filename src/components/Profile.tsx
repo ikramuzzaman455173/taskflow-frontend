@@ -311,7 +311,7 @@ export default function Profile() {
             <Button
               variant="outline"
               onClick={() =>
-                window.open("https://github.com/your-repo", "_blank")
+                window.open("https://github.com/ikramuzzaman455173/taskflow", "_blank")
               }
             >
               <Github className="h-4 w-4 mr-2" />

@@ -2,8 +2,8 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 
 const api: AxiosInstance = axios.create({
-  // baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
-  baseURL: "https://taskflow-backend-ruddy.vercel.app/api",
+  baseURL: "http://localhost:5000/api",
+  // baseURL: "https://taskflow-backend-ruddy.vercel.app/api",
   withCredentials: true
 });
 

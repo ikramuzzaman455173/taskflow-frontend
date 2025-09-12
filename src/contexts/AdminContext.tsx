@@ -1,4 +1,3 @@
-
 // src/contexts/AdminContext.tsx
 import React, {
   createContext,
@@ -111,6 +110,28 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     [users, ensureAdmin]
   );
 
+  const makeUser = useCallback(
+    async (id: string) => {
+      if (!ensureAdmin()) return false;
+      const prev = users;
+      setUsers((cur) =>
+        cur.map((u) => (u.id === id ? { ...u, role: "user" } : u))
+      );
+      try {
+        const { data } = await api.patch(`/admin/users/${id}/make-user`);
+        const role = (data?.data?.role as AdminUser["role"]) || "user"; // sync from server
+        setUsers((cur) => cur.map((u) => (u.id === id ? { ...u, role } : u)));
+        // toast.success("Revoked admin access");
+        return true;
+      } catch (e: any) {
+        setUsers(prev);
+        toast.error(getApiErrorMessage(e, "Failed to revoke admin access"));
+        return false;
+      }
+    },
+    [users, ensureAdmin]
+  );
+
   const activate = useCallback(
     async (id: string) => {
       if (!ensureAdmin()) return false;
@@ -186,6 +207,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       isAdmin,
       fetchUsers,
       makeAdmin,
+      makeUser,
       activate,
       deactivate,
       removeUser,
@@ -198,6 +220,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       isAdmin,
       fetchUsers,
       makeAdmin,
+      makeUser,
       activate,
       deactivate,
       removeUser
