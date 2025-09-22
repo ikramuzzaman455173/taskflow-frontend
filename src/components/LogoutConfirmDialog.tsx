@@ -19,10 +19,10 @@ interface LogoutConfirmDialogProps {
   onConfirm: () => void;
 }
 
-export default function LogoutConfirmDialog({ 
-  open, 
-  onOpenChange, 
-  onConfirm 
+export default function LogoutConfirmDialog({
+  open,
+  onOpenChange,
+  onConfirm
 }: LogoutConfirmDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
